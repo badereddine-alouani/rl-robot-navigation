@@ -1,7 +1,7 @@
 import math
 import pytest
+from robot_simulator.controllers import calculate_heading_error
 
-from main import calculate_heading_error
 
 
 @pytest.mark.parametrize(
