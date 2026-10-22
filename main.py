@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 def calculate_heading_error(x, y, theta, goal):
     dx, dy = goal[0] - x, goal[1] - y
     theta_goal = np.arctan2(dy, dx)
-    error = (theta_goal - theta + np.pi) % (2 * np.pi) - np.pi
+    error = normalize_angle(theta_goal - theta)
 
     return error
 
@@ -21,12 +21,16 @@ def calculate_speed(x, y, goal, Kv, max_speed):
 
     return v
 
+def normalize_angle(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
 
 
 def update_robot(x, y, theta, v, omega, delta):
     x += v * np.cos(theta) * delta
     y += v * np.sin(theta) * delta
     theta += omega * delta
+    theta = normalize_angle(theta)
 
     return x, y, theta
 
@@ -51,7 +55,6 @@ def simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta):
 
 if __name__ == '__main__':
     x, y, theta = 0, 0, np.pi
-    v, omega = 0, 0
     Kv, Kp = 0.5, 2
     max_speed = 10
     delta = 0.1
