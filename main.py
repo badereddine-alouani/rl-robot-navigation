@@ -30,7 +30,9 @@ def update_robot(x, y, theta, v, omega, delta):
 
     return x, y, theta
 
-def simulate(x, y, theta, steps, v, goal, Kv, Kp, max_speed, delta):
+def simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta):
+    x_history = [x]
+    y_history = [y]
     for _ in range(steps):
         v = calculate_speed(x, y, goal, Kv, max_speed)
         omega = calculate_omega(x, y, theta, goal, Kp)
@@ -43,7 +45,7 @@ def simulate(x, y, theta, steps, v, goal, Kv, Kp, max_speed, delta):
         if d <= 0.05:
             break
 
-    return x, y, theta
+    return x, y, theta, x_history, y_history
         
 
 
@@ -53,12 +55,10 @@ if __name__ == '__main__':
     Kv, Kp = 0.5, 2
     max_speed = 10
     delta = 0.1
-    x_history = [0]
-    y_history = [0]
     goal = (5, -5)
     steps = 100
 
-    x, y, theta = simulate(x, y, theta, steps, v, goal, Kv, Kp, max_speed, delta)
+    x, y, theta, x_history, y_history = simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta)
 
     fig, ax = plt.subplots(figsize=(8,5))
 
