@@ -128,4 +128,9 @@ class RobotNavEnv(gym.Env):
         self.current_step += 1
         truncated = bool(self.current_step >= self.max_steps)
 
-        return self._get_obs(), float(reward), terminated, truncated, {}
+        info = {
+            "is_success": bool(is_goal),
+            "is_collision": bool(is_collision),
+        }
+
+        return self._get_obs(), float(reward), terminated, truncated, info

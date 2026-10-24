@@ -1,0 +1,42 @@
+{
+    "1 Obstacle (Facile)": {
+        "obstacles": 1,
+        "episodes": 25,
+        "success_rate_pct": 100.0,
+        "collision_rate_pct": 0.0,
+        "timeout_rate_pct": 0.0,
+        "mean_steps": 64.8,
+        "mean_path_length_m": 6.4757412841160455,
+        "mean_path_efficiency_pct": 90.90544608770367
+    },
+    "2 Obstacles (Moyen)": {
+        "obstacles": 2,
+        "episodes": 25,
+        "success_rate_pct": 92.0,
+        "collision_rate_pct": 0.0,
+        "timeout_rate_pct": 8.0,
+        "mean_steps": 87.47826086956522,
+        "mean_path_length_m": 8.563289804077993,
+        "mean_path_efficiency_pct": 80.26698732986546
+    },
+    "3 Obstacles (Nominal)": {
+        "obstacles": 3,
+        "episodes": 25,
+        "success_rate_pct": 76.0,
+        "collision_rate_pct": 12.0,
+        "timeout_rate_pct": 12.0,
+        "mean_steps": 69.47368421052632,
+        "mean_path_length_m": 6.825129576796445,
+        "mean_path_efficiency_pct": 87.6556287449807
+    },
+    "5 Obstacles (Haute Densité)": {
+        "obstacles": 5,
+        "episodes": 25,
+        "success_rate_pct": 80.0,
+        "collision_rate_pct": 4.0,
+        "timeout_rate_pct": 16.0,
+        "mean_steps": 81.8,
+        "mean_path_length_m": 7.961973088406026,
+        "mean_path_efficiency_pct": 77.97444625356778
+    }
+}
