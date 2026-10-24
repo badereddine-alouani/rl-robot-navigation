@@ -7,12 +7,13 @@ from robot_simulator.envs import RobotNavEnv
 def main():
     os.makedirs("models", exist_ok=True)
     
-    env = RobotNavEnv()
+    env = RobotNavEnv(randomize=True)
     env = Monitor(env)
+    timesteps = 200_000
 
     model = PPO("MlpPolicy", env, verbose=1, device="cpu")
-    print("Starting training for 100,000 steps...")
-    model.learn(total_timesteps=100_000)
+    print(f"Starting training for {timesteps} steps...")
+    model.learn(total_timesteps=timesteps)
 
     model.save("models/ppo_robot_nav")
     print("Model saved to models/ppo_robot_nav.zip")

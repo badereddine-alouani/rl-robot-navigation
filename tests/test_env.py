@@ -88,3 +88,17 @@ def test_env_truncation():
     # 5th step should trigger truncation
     _, _, terminated, truncated, _ = env.step(action)
     assert truncated is True
+
+
+def test_env_randomize():
+    env = RobotNavEnv(randomize=True)
+    check_env(env)
+
+    obs1, _ = env.reset(seed=42)
+    obs2, _ = env.reset(seed=42)
+    # Seeding should reproduce identical observations
+    np.testing.assert_allclose(obs1, obs2)
+
+    # Different seeds should produce different configurations
+    obs3, _ = env.reset(seed=99)
+    assert not np.allclose(obs1, obs3)

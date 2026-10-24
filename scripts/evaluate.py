@@ -1,8 +1,10 @@
 from stable_baselines3 import PPO
 from robot_simulator.envs import RobotNavEnv
 from robot_simulator.simulation import plot_trajectory
+from robot_simulator.obstacles import CircularObstacle
+import numpy as np
 
-env = RobotNavEnv()
+env = RobotNavEnv(randomize=True)
 model = PPO.load("models/ppo_robot_nav")
 obs, info = env.reset()
 x_history = [env.robot_x]

@@ -24,6 +24,7 @@ class RobotNavEnv(gym.Env):
         fov=2 * np.pi,
         obstacles=None,
         goal=(4.0, 4.0),
+        randomize=False
     ):
         super().__init__()
         self.max_steps = max_steps
@@ -35,8 +36,11 @@ class RobotNavEnv(gym.Env):
         self.num_beams = num_beams
         self.max_range = max_range
         self.fov = fov
-        self.goal = goal
-        self.obstacles = obstacles if obstacles is not None else [CircularObstacle(2.0, 2.0, 0.8)]
+        self.initial_goal = goal
+        self.initial_obstacles = list(obstacles) if obstacles is not None else [CircularObstacle(2.0, 2.0, 0.8)]
+        self.goal = self.initial_goal
+        self.obstacles = list(self.initial_obstacles)
+        self.randomize = randomize
 
         # Action Space: [v, omega]
         self.action_space = spaces.Box(
@@ -66,9 +70,40 @@ class RobotNavEnv(gym.Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.robot_x = 0.0
-        self.robot_y = 0.0
-        self.robot_theta = 0.0
+        if self.randomize:
+            self.robot_x = float(self.np_random.uniform(-3.0, 3.0))
+            self.robot_y = float(self.np_random.uniform(-3.0, 3.0))
+            self.robot_theta = float(self.np_random.uniform(-np.pi, np.pi))
+            while True:
+                gx = float(self.np_random.uniform(-6.0, 6.0))
+                gy = float(self.np_random.uniform(-6.0, 6.0))
+                if np.hypot(gx - self.robot_x, gy - self.robot_y) >= 3.0:
+                    self.goal = (gx, gy)
+                    break
+
+            new_obstacles = []
+            num_obstacles = int(self.np_random.integers(1, 4))
+            for _ in range(num_obstacles):
+                while True:
+                    ox = float(self.np_random.uniform(-5.0, 5.0))
+                    oy = float(self.np_random.uniform(-5.0, 5.0))
+                    r = float(self.np_random.uniform(0.6, 0.9))
+                    
+                    dist_to_robot = np.hypot(ox - self.robot_x, oy - self.robot_y)
+                    dist_to_goal = np.hypot(ox - self.goal[0], oy - self.goal[1])
+                    
+                    # Keep clear of robot and goal
+                    if dist_to_robot >= (r + self.robot_radius + 0.5) and dist_to_goal >= (r + self.goal_tolerance + 0.5):
+                        new_obstacles.append(CircularObstacle(ox, oy, r))
+                        break
+            self.obstacles = new_obstacles
+        else:
+            self.robot_x = 0.0
+            self.robot_y = 0.0
+            self.robot_theta = 0.0
+            self.goal = self.initial_goal
+            self.obstacles = list(self.initial_obstacles)
+
         self.current_step = 0
         self.prev_distance = np.hypot(self.goal[0] - self.robot_x, self.goal[1] - self.robot_y)
 
