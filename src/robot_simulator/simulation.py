@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from robot_simulator.controllers import calculate_omega, calculate_speed
-from robot_simulator.kinematics import update_robot
+from robot_simulator.kinematics import update_robot, normalize_angle
 from robot_simulator.obstacles import check_collision
+from robot_simulator.lidar import simulate_lidar
 
 
 def simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta, goal_tolerance=0.05, obstacles=None, robot_radius=0.0):
@@ -12,6 +13,7 @@ def simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta, goal_tolerance=
     x_history = [x]
     y_history = [y]
     outcome = "timeout"
+
 
     for _ in range(steps):
         v = calculate_speed(x, y, goal, Kv, max_speed)
@@ -33,10 +35,12 @@ def simulate(x, y, theta, steps, goal, Kv, Kp, max_speed, delta, goal_tolerance=
     return x, y, theta, x_history, y_history, outcome
 
 
-def plot_trajectory(x_history, y_history, goal, obstacles=None):
+def plot_trajectory(x_history, y_history, goal, obstacles=None, theta=None, num_beams=16, fov=2*np.pi, max_range=5.0):
     if obstacles is None:
         obstacles = []
     fig, ax = plt.subplots(figsize=(8, 5))
+    x, y = x_history[-1], y_history[-1]
+
 
     ax.set_xlim(-10, 10)
     ax.set_ylim(-10, 10)
@@ -49,6 +53,15 @@ def plot_trajectory(x_history, y_history, goal, obstacles=None):
         circle = Circle((obs.x, obs.y), obs.radius, color="gray", alpha=0.6)
         ax.add_patch(circle)
 
+    if theta is not None:
+        scan = simulate_lidar(x, y, theta, obstacles, num_beams=num_beams, max_range=max_range, fov=fov)
+        angles = np.linspace(0, fov, num_beams, endpoint=False) + theta
+        for angle, d in zip(angles, scan):
+            x_end = x + d * np.cos(angle)
+            y_end = y + d * np.sin(angle)
+            ax.plot([x, x_end], [y, y_end], color="red", linestyle=":", alpha=0.5)
+    
+
     ax.grid(True)
     ax.legend()
     plt.show()
@@ -56,7 +69,7 @@ def plot_trajectory(x_history, y_history, goal, obstacles=None):
 
 if __name__ == '__main__':
     from robot_simulator.obstacles import CircularObstacle
-    x, y, theta = 0, 0, np.pi / 4
+    x, y, theta = 0, 0, np.pi
     Kv, Kp = 0.5, 2
     max_speed = 10
     delta = 0.1
@@ -69,4 +82,4 @@ if __name__ == '__main__':
     )
 
     print(f"Simulation finished. Outcome: {outcome}")
-    plot_trajectory(x_history, y_history, goal, obstacles)
+    plot_trajectory(x_history, y_history, goal, obstacles, theta)
