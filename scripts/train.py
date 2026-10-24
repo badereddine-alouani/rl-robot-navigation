@@ -15,8 +15,9 @@ def main():
     print(f"Starting training for {timesteps} steps...")
     model.learn(total_timesteps=timesteps)
 
-    model.save("models/ppo_robot_nav")
-    print("Model saved to models/ppo_robot_nav.zip")
+    model_name = "models/ppo_robot_nav_smooth"
+    model.save(model_name)
+    print(f"Model saved to {model_name}.zip")
 
 
 if __name__ == '__main__':

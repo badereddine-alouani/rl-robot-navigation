@@ -14,15 +14,17 @@ def main():
     print("=================================================================")
 
     # 1. Mission setup
-    start = (-5.0, -4.0)
-    goal = (6.0, 5.0)
+    start = (-4.0, -3.5)
+    goal = (4.5, 4.0)
 
-    # 2. Obstacles in the environment
+    # 2. Obstacles in the environment (Diagonal Barrier)
     obstacles = [
-        CircularObstacle(x=-2.0, y=-2.0, radius=1.0),
-        CircularObstacle(x=1.0, y=-0.5, radius=1.1),
-        CircularObstacle(x=-1.0, y=2.0, radius=0.9),
-        CircularObstacle(x=3.5, y=3.0, radius=1.0),
+        CircularObstacle(x=-2.5, y=-1.5, radius=0.75),
+        CircularObstacle(x=-1.2, y=-2.8, radius=0.70),
+        CircularObstacle(x=-0.2, y=-0.8, radius=0.75),
+        CircularObstacle(x=0.8, y=1.2, radius=0.80),
+        CircularObstacle(x=2.0, y=-0.2, radius=0.75),
+        CircularObstacle(x=2.8, y=2.2, radius=0.80),
     ]
 
     # 3. Global Planning with A*
@@ -49,7 +51,7 @@ def main():
     print("\n[Étape 2] Suivi de chemin réactif avec l'agent PPO...")
     # Initialize environment at start position with first waypoint as goal
     env = RobotNavEnv(
-        max_steps=200,
+        max_steps=500,
         goal=waypoints[1],  # First target after start
         obstacles=obstacles,
         randomize=False
@@ -57,11 +59,13 @@ def main():
     env.reset()
     env.robot_x = start[0]
     env.robot_y = start[1]
-    env.robot_theta = 0.0
+    
+    # Initial heading oriented towards the final goal
+    env.robot_theta = float(np.arctan2(goal[1] - start[1], goal[0] - start[0]))
     env.prev_distance = np.hypot(waypoints[1][0] - env.robot_x, waypoints[1][1] - env.robot_y)
     obs = env._get_obs()
 
-    model = PPO.load("models/ppo_robot_nav", device="cpu")
+    model = PPO.load("models/ppo_robot_nav_smooth", device="cpu")
 
     x_history = [env.robot_x]
     y_history = [env.robot_y]
@@ -83,13 +87,17 @@ def main():
             break
 
         dist_to_current = np.hypot(env.goal[0] - env.robot_x, env.goal[1] - env.robot_y)
-        if dist_to_current <= env.goal_tolerance + 0.25:
+        # Acceptance radius: 0.75m for intermediate waypoints (smooth corner cutting),
+        # and goal_tolerance for the final mission destination.
+        acceptance_radius = env.goal_tolerance if current_wp_idx == len(waypoints) - 1 else 0.75
+
+        if dist_to_current <= acceptance_radius:
             print(f"   [V] Waypoint {current_wp_idx} atteint à ({env.robot_x:.2f}, {env.robot_y:.2f}) à l'étape {total_steps}")
             current_wp_idx += 1
 
             if current_wp_idx >= len(waypoints):
                 print("\n=================================================================")
-                print("MISSION ACCOMPLIE : Objectif final atteint par l'agent !")
+                print(f"MISSION ACCOMPLIE : Objectif final atteint en {total_steps} étapes !")
                 print("=================================================================")
                 break
 
@@ -103,8 +111,8 @@ def main():
     # 5. Visualization
     fig, ax = plt.subplots(figsize=(10, 9))
     ax.set_aspect("equal")
-    ax.set_xlim(-8, 8)
-    ax.set_ylim(-7, 8)
+    ax.set_xlim(-6.5, 6.5)
+    ax.set_ylim(-6.5, 6.5)
     ax.grid(True, linestyle="--", alpha=0.55)
 
     # Plot A* Global Path

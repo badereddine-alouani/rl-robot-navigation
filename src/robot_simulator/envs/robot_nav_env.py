@@ -60,6 +60,8 @@ class RobotNavEnv(gym.Env):
         self.robot_theta = 0.0
         self.current_step = 0
         self.prev_distance = 0.0
+        self.prev_v = 0.0
+        self.prev_omega =0.0
 
     def _get_obs(self):
         d = np.hypot(self.goal[0] - self.robot_x, self.goal[1] - self.robot_y)
@@ -116,6 +118,8 @@ class RobotNavEnv(gym.Env):
 
         self.current_step = 0
         self.prev_distance = np.hypot(self.goal[0] - self.robot_x, self.goal[1] - self.robot_y)
+        self.prev_v = 0.0
+        self.prev_omega = 0.0
 
         return self._get_obs(), {}
 
@@ -125,17 +129,34 @@ class RobotNavEnv(gym.Env):
         current_distance = np.hypot(self.goal[0] - self.robot_x, self.goal[1] - self.robot_y)
         is_collision = check_collision(self.robot_x, self.robot_y, self.obstacles, self.robot_radius)
         is_goal = current_distance <= self.goal_tolerance
+
+        # 1. Base Progress Reward
         progress = self.prev_distance - current_distance
         reward = progress - 0.01
 
+         # 2. Smoothness / Jerk Penalty (discourages abrupt twitching)
+        jerk_penalty = 0.02 * ((omega - self.prev_omega) ** 2) + 0.01 * ((v - self.prev_v) ** 2)
+        reward -= jerk_penalty
+
+        # 3. Soft Obstacle Clearance Penalty (safety buffer)
+        obs = self._get_obs()
+        min_lidar = float(np.min(obs[2:]))
+        if min_lidar < 0.6:
+            clearance_penalty = 0.04 * ((0.6 - min_lidar) ** 2)
+            reward -= clearance_penalty
+
         if is_goal:
-            reward += 100
+            speed_ratio = v / self.max_speed
+            reward += 100.0 * (1.0 - 0.5 * speed_ratio)
         elif is_collision:
             reward -= 100
 
         self.prev_distance = current_distance
-        terminated = bool(is_collision or is_goal)
+        self.prev_v = v
+        self.prev_omega = omega
         self.current_step += 1
+
+        terminated = bool(is_collision or is_goal)
         truncated = bool(self.current_step >= self.max_steps)
 
         info = {
@@ -143,4 +164,4 @@ class RobotNavEnv(gym.Env):
             "is_collision": bool(is_collision),
         }
 
-        return self._get_obs(), float(reward), terminated, truncated, info
+        return obs, float(reward), terminated, truncated, info
