@@ -68,41 +68,51 @@ class RobotNavEnv(gym.Env):
 
         return np.array([d, heading_err] + list(scan), dtype=np.float32)
 
+    def _reset_defaults(self):
+        self.robot_x = 0.0
+        self.robot_y = 0.0
+        self.robot_theta = 0.0
+        self.goal = self.initial_goal
+        self.obstacles = list(self.initial_obstacles)
+
+    def _sample_goal(self, min_distance=3.0):
+        while True:
+            gx = float(self.np_random.uniform(-6.0, 6.0))
+            gy = float(self.np_random.uniform(-6.0, 6.0))
+            if np.hypot(gx - self.robot_x, gy - self.robot_y) >= min_distance:
+                return (gx, gy)
+
+    def _sample_obstacles(self):
+        new_obstacles = []
+        num_obstacles = int(self.np_random.integers(1, 4))
+        for _ in range(num_obstacles):
+            while True:
+                ox = float(self.np_random.uniform(-5.0, 5.0))
+                oy = float(self.np_random.uniform(-5.0, 5.0))
+                r = float(self.np_random.uniform(0.6, 0.9))
+                
+                dist_to_robot = np.hypot(ox - self.robot_x, oy - self.robot_y)
+                dist_to_goal = np.hypot(ox - self.goal[0], oy - self.goal[1])
+                
+                # Keep clear of robot and goal
+                if dist_to_robot >= (r + self.robot_radius + 0.5) and dist_to_goal >= (r + self.goal_tolerance + 0.5):
+                    new_obstacles.append(CircularObstacle(ox, oy, r))
+                    break
+        return new_obstacles
+
+    def _randomize_environment(self):
+        self.robot_x = float(self.np_random.uniform(-3.0, 3.0))
+        self.robot_y = float(self.np_random.uniform(-3.0, 3.0))
+        self.robot_theta = float(self.np_random.uniform(-np.pi, np.pi))
+        self.goal = self._sample_goal()
+        self.obstacles = self._sample_obstacles()
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         if self.randomize:
-            self.robot_x = float(self.np_random.uniform(-3.0, 3.0))
-            self.robot_y = float(self.np_random.uniform(-3.0, 3.0))
-            self.robot_theta = float(self.np_random.uniform(-np.pi, np.pi))
-            while True:
-                gx = float(self.np_random.uniform(-6.0, 6.0))
-                gy = float(self.np_random.uniform(-6.0, 6.0))
-                if np.hypot(gx - self.robot_x, gy - self.robot_y) >= 3.0:
-                    self.goal = (gx, gy)
-                    break
-
-            new_obstacles = []
-            num_obstacles = int(self.np_random.integers(1, 4))
-            for _ in range(num_obstacles):
-                while True:
-                    ox = float(self.np_random.uniform(-5.0, 5.0))
-                    oy = float(self.np_random.uniform(-5.0, 5.0))
-                    r = float(self.np_random.uniform(0.6, 0.9))
-                    
-                    dist_to_robot = np.hypot(ox - self.robot_x, oy - self.robot_y)
-                    dist_to_goal = np.hypot(ox - self.goal[0], oy - self.goal[1])
-                    
-                    # Keep clear of robot and goal
-                    if dist_to_robot >= (r + self.robot_radius + 0.5) and dist_to_goal >= (r + self.goal_tolerance + 0.5):
-                        new_obstacles.append(CircularObstacle(ox, oy, r))
-                        break
-            self.obstacles = new_obstacles
+            self._randomize_environment()
         else:
-            self.robot_x = 0.0
-            self.robot_y = 0.0
-            self.robot_theta = 0.0
-            self.goal = self.initial_goal
-            self.obstacles = list(self.initial_obstacles)
+            self._reset_defaults()
 
         self.current_step = 0
         self.prev_distance = np.hypot(self.goal[0] - self.robot_x, self.goal[1] - self.robot_y)

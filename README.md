@@ -13,7 +13,7 @@
 
 ## 📽️ Aperçu en Temps Réel (Real-Time Animation)
 
-![Robot Navigation](robot_navigation.gif)
+![Robot Navigation](assets/robot_navigation.gif)
 
 *Animation en direct montrant le robot unicycle adaptant ses vitesses $(v, \omega)$ en temps réel grâce à ses 16 faisceaux LiDAR pour contourner les obstacles et rallier la cible.*
 
@@ -94,7 +94,7 @@ Pour empêcher le surapprentissage (*overfitting*), chaque épisode réinitialis
 
 ### 2. Suivi de Chemin Multi-Waypoints (Path Following)
 
-![Waypoint Following](trajectory_waypoints.png)
+![Waypoint Following](assets/trajectory_waypoints.png)
 
 Le modèle PPO enchaîne le ralliement de waypoints successifs tout en gonflant sa trajectoire de manière réactive pour contourner les obstacles présents sur les segments.
 
@@ -102,7 +102,7 @@ Le modèle PPO enchaîne le ralliement de waypoints successifs tout en gonflant 
 
 ### 3. Comparatif : Navigation Réactive vs Navigation Hiérarchique
 
-![Comparison](comparison_with_and_without_planning.png)
+![Comparison](assets/comparison_with_and_without_planning.png)
 
 - **À gauche (PPO Pur Réactif)** : Le robot est myope. Il subit des déviations tardives et doit effectuer un virage en crochet abrupt pour rallier la cible ($16.80\text{ m}$).
 - **À droite (A* Global + PPO Local)** : Le planificateur global anticipe les couloirs dégagés en amont. L'agent PPO négocie une trajectoire parabolique fluide et optimale ($16.20\text{ m}$).
@@ -113,6 +113,13 @@ Le modèle PPO enchaîne le ralliement de waypoints successifs tout en gonflant 
 
 ```text
 robot-simulator/
+├── assets/                    # Animations GIF et graphiques de trajectoires
+│   ├── robot_navigation.gif
+│   ├── comparison_with_and_without_planning.png
+│   ├── trajectory_hierarchical.png
+│   └── trajectory_waypoints.png
+├── benchmarks/                # Données brutes des benchmarks quantitatifs
+│   └── benchmark_results.json
 ├── src/robot_simulator/
 │   ├── kinematics.py          # Modèle unicycle et intégration d'Euler
 │   ├── controllers.py         # Contrôleur proportionnel et calcul d'erreur de cap

@@ -75,7 +75,7 @@ def record_episode(env, model, max_steps=250, start_pose=(-4.0, -3.5, 0.0)):
     return frames, success, total_reward
 
 
-def create_animation(frames, save_gif=True, gif_filename="robot_navigation.gif"):
+def create_animation(frames, save_gif=True, gif_filename="assets/robot_navigation.gif"):
     """Generates an interactive real-time 2D animation with live LiDAR beams and telemetry."""
     fig, ax = plt.subplots(figsize=(8.5, 8.5))
     ax.set_aspect("equal")
@@ -144,7 +144,7 @@ def create_animation(frames, save_gif=True, gif_filename="robot_navigation.gif")
 
     fov = 2 * np.pi
     num_beams = 16
-    beam_angles_rel = np.linspace(-fov / 2, fov / 2, num_beams, endpoint=False)
+    beam_angles_rel = np.linspace(0, fov, num_beams, endpoint=False)
 
     def init():
         traj_line.set_data([], [])
@@ -196,10 +196,11 @@ def create_animation(frames, save_gif=True, gif_filename="robot_navigation.gif")
 
     anim = animation.FuncAnimation(
         fig, update, frames=len(frames), init_func=init,
-        interval=70, blit=True, repeat=True
+        interval=30, blit=True, repeat=True
     )
 
     if save_gif:
+        os.makedirs(os.path.dirname(gif_filename) or ".", exist_ok=True)
         print(f"Génération du GIF animé ({gif_filename})...")
         anim.save(gif_filename, writer="pillow", fps=15)
         print(f"GIF sauvegardé avec succès : {gif_filename}")
@@ -239,7 +240,7 @@ def main():
     print(f"Épisode terminé en {len(frames)} étapes. Succès : {success} | Récompense totale : {reward:.2f}")
     
     # Launch animation and generate GIF
-    create_animation(frames, save_gif=True, gif_filename="robot_navigation.gif")
+    create_animation(frames, save_gif=True, gif_filename="assets/robot_navigation.gif")
 
 
 if __name__ == "__main__":

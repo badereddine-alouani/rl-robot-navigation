@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
@@ -127,7 +128,7 @@ def main():
 
     # Plot Final LiDAR beams
     scan = simulate_lidar(env.robot_x, env.robot_y, env.robot_theta, obstacles, env.num_beams, env.max_range, env.fov)
-    angles = np.linspace(-env.fov / 2, env.fov / 2, env.num_beams, endpoint=False) + env.robot_theta
+    angles = np.linspace(0, env.fov, env.num_beams, endpoint=False) + env.robot_theta
     for dist, angle in zip(scan, angles):
         x_end = env.robot_x + dist * np.cos(angle)
         y_end = env.robot_y + dist * np.sin(angle)
@@ -138,9 +139,11 @@ def main():
     ax.set_ylabel("Y (m)")
     ax.legend(loc="upper left")
 
+    os.makedirs("assets", exist_ok=True)
+    out_path = os.path.join("assets", "trajectory_hierarchical.png")
     plt.tight_layout()
-    plt.savefig("trajectory_hierarchical.png", dpi=300)
-    print("Graphique sauvegardé dans trajectory_hierarchical.png")
+    plt.savefig(out_path, dpi=300)
+    print(f"Graphique sauvegardé dans {out_path}")
     plt.show()
 
 

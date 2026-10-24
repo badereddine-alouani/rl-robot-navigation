@@ -1,4 +1,5 @@
 import json
+import os
 import numpy as np
 from stable_baselines3 import PPO
 from robot_simulator.envs import RobotNavEnv
@@ -146,9 +147,11 @@ def run_benchmark(num_episodes_per_level=25, seed=4):
     print("=" * 80)
 
     # Save to JSON
-    with open("benchmark_results.json", "w", encoding="utf-8") as f:
+    os.makedirs("benchmarks", exist_ok=True)
+    out_path = os.path.join("benchmarks", "benchmark_results.json")
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(benchmark_summary, f, indent=4, ensure_ascii=False)
-    print("\nDonnées brutes sauvegardées dans benchmark_results.json")
+    print(f"\nDonnées brutes sauvegardées dans {out_path}")
 
 
 if __name__ == "__main__":

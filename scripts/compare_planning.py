@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
@@ -132,10 +133,12 @@ def run_comparison():
     ax2.set_title(f"2. AVEC Planification (A* + PPO)\nLongueur : {dist_with_a:.2f} m | {len(hist_a_x)} pas", fontsize=11, fontweight="bold")
     ax2.legend(loc="upper left")
 
+    os.makedirs("assets", exist_ok=True)
+    out_path = os.path.join("assets", "comparison_with_and_without_planning.png")
     plt.suptitle("Impact de la Planification Globale sur la Navigation Autonome", fontsize=14, fontweight="bold", y=0.98)
     plt.tight_layout(rect=[0, 0.02, 1, 0.94])
-    plt.savefig("comparison_with_and_without_planning.png", dpi=300)
-    print("Graphique comparatif sauvegardé dans comparison_with_and_without_planning.png")
+    plt.savefig(out_path, dpi=300)
+    print(f"Graphique comparatif sauvegardé dans {out_path}")
     plt.show()
 
 
